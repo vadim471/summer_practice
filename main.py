@@ -5,6 +5,7 @@ import re
 import bs4
 import requests
 from CianParser import CianParser
+from HTMLFetch import HTMLFetcher
 from Parser import Parser
 from Apartment import Apartment, HouseType, SaleType
 from URLType import FeedType, URLType
@@ -16,7 +17,7 @@ def count_apartments(feed_pages: list[URLType], needed_count: int) -> list[URLTy
     )
     if total_request.status_code != 200:
         total_request = requests.get(
-            "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_type=flat&p=1region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1"
+            "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=1&offer_type=flat&p=1region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1"
         )
     parser = bs4.BeautifulSoup(total_request.text, "html.parser")
     total_raw = parser.find("div", {"data-name": "SummaryHeader"})
@@ -66,25 +67,25 @@ def count_apartments(feed_pages: list[URLType], needed_count: int) -> list[URLTy
     return feed_pages
 
 
-async def main():
+def main():
     feed_pages: list[URLType] = [
         URLType(
             HouseType.NEW,
-            "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=1&offer_type=flat&p=1region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
+            "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=1&offer_type=flat&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
             0,
             SaleType.SALE,
             FeedType.NEW_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
-            "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=2&offer_seller_type%5B1%5D=3&offer_type=flat&p=1region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
+            "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=2&offer_seller_type%5B1%5D=3&offer_type=flat&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
             0,
             SaleType.SALE,
             FeedType.SECONDARY_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
-            "https://chelyabinsk.cian.ru/cat.php?deal_type=rent&engine_version=2&offer_type=flat&p=1region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1&type=4",
+            "https://chelyabinsk.cian.ru/cat.php?deal_type=rent&engine_version=2&offer_type=flat&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1&type=4",
             0,
             SaleType.RENT,
             FeedType.SECONDARY_RENT,
@@ -92,14 +93,21 @@ async def main():
     ]
 
     parser = CianParser()
+    fetcher = HTMLFetcher()
+    
 
     apartments: list[Apartment] = []
 
     feed_pages = count_apartments(feed_pages, 2000)
 
-    res = await parser.parse_feed_page(feed_pages[0])
-    pass
+    for page in feed_pages:
+        html_content = fetcher.fetch_html(page.url)
+        page_apartments = parser.parse_feed_page(html_content, page)
+        apartments.extend(page_apartments)
+    
+    for apartment in apartments:
+        print(apartment)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
