@@ -10,7 +10,7 @@ class HouseType(Enum):
     SECONDARY = 2
 
 class Apartment:
-    def __init__(self, address: str, price: int, square: float, rooms: int, floor: int, sale_type: SaleType, house_type: HouseType):
+    def __init__(self, address: str, price: int, square: float, rooms: int, floor: int, sale_type: SaleType, house_type: HouseType, url: str):
         self.address = address
         self.price = price
         self.square = square
@@ -18,9 +18,10 @@ class Apartment:
         self.floor = floor
         self.sale_type = sale_type
         self.house_type = house_type
+        self.url = url
         
         
 
     def __str__(self):
-        return f'Address: {self.address} Price: {self.price} rubs, Area: {self.square} m^2, Rooms: {self.rooms}'
+        return f'Address: {self.address} Price: {self.price} rubs, Area: {self.square} m^2, Rooms: {self.rooms}, Url: {self.url}'
     

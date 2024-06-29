@@ -20,10 +20,12 @@ class YandexParser(Parser):
         square = self.get_square(title)
 
         # type_of_deal = get_deal_type(url)
+        sale_type = SaleType.SALE
 
+        if 
         address = offer.find_element(By.CSS_SELECTOR, '.AddressWithGeoLinks__addressContainer--4jzfZ').text
         return Apartment(
-            address, cost, square, rooms_count, floor, SaleType.RENT, house_type
+            address, cost, square, rooms_count, floor, sale_type, house_type
         )
 
     def get_rooms_count(self, title) -> int:

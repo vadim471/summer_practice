@@ -46,9 +46,12 @@ class CianParser:
         if type(main_price_raw) is not Tag:
             raise Exception("Can't parse price")
         
-        match = re.search(r'\d+\d', main_price_raw.get_text().replace(' ', ''))
+        match = re.search(r'\d+', main_price_raw.get_text().replace(' ', ''))
         if match:
             main_price = int(match.group(0))
+        sale_type = SaleType.SALE
+        if 'мес' in main_price_raw.get_text():
+            sale_type = SaleType.RENT
        
         # price_info_raw = card_tag.find('p', {'data-mark': 'PriceInfo'})
         # if type(price_info_raw) is not Tag:
@@ -58,19 +61,22 @@ class CianParser:
         address = ", ".join(
             [a.get_text() for a in card_tag.find_all("a", {"data-name": "GeoLabel"})]
         )
-
+        url_tag = card_tag.find("a", href = True)
+        url = url_tag['href']
         return Apartment(
-            address, main_price, area, rooms, floor, SaleType.RENT, house_type
+            address, main_price, area, rooms, floor, sale_type, house_type, url
         )
 
-    def parse_feed_page(self, html_content: str, url_type: URLType) -> list[Apartment]:
+    def parse_feed_page(self, html_content: str, url_type: URLType, sum_card: int) -> list[Apartment]:
         soup = BeautifulSoup(html_content, "html.parser")
         cards = soup.find_all("div", {"data-name": "LinkArea"})
-
+        
         apartments = []
         for i, card in enumerate(cards): 
             if card.find("button"):
                 continue
-            apartments.append(self.parse_card(card, url_type.house_type))
-
+            if sum_card > len(apartments):
+                apartments.append(self.parse_card(card, url_type.house_type))
+            else:
+                break
         return apartments
