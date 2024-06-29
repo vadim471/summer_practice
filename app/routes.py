@@ -1,40 +1,44 @@
-from flask import render_template, url_for, flash, redirect, request
-from app import app, db, bcrypt
-from models import User, Apartment
-from flask_login import login_user, current_user, logout_user
+from flask import render_template, url_for, redirect, request, Blueprint
+from app.models import User, Apartment
+from flask_login import login_user, current_user, logout_user, login_required
+from app import db
 
-@app.route('/')
+routes = Blueprint('routes', __name__)
+
+@routes.route('/')
 def home():
     apartments = Apartment.query.all()
     return render_template('home.html', apartments=apartments)
 
-@app.route('/register', methods=['GET', 'POST'])
+
+@routes.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('routes.home'))
     if request.method == 'POST':
-        username = request.form.get('username')
+        name = request.form.get('username')
         password = request.form.get('password')
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(username=username, password=hashed_password)
+        user = User(name=name, password=password)
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        return redirect(url_for('home'))
+        return redirect(url_for('routes.home'))
     return render_template('register.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+@routes.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('routes.home'))
     if request.method == 'POST':
+        name = request.form.get('username')
         password = request.form.get('password')
-        if user and bcrypt.check_password_hash(user.password, password):
+        user = User.query.filter_by(name=name).first()
+        if user and user.password == password:
             login_user(user)
-            return redirect(url_for('home'))
+            return redirect(url_for('routes.home'))
     return render_template('login.html')
 
-@app.route('/logout')
+@routes.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('routes.home'))

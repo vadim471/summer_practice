@@ -1,34 +1,27 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Enum
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-from enum import Enum as PyEnum
-from Apartment import HouseType, SaleType
-from app import login_manager, db
 from flask_login import UserMixin
+from . import db
 
 
-Base = declarative_base()
+class User(UserMixin, db.Model):
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(150), unique=True, nullable=False)
-    password = Column(String(50), nullable=False)
+    __tablename__ = 'users'
 
-class Apartment(Base):
-    __tablename__ = "flat"
+    id = db.Column(db.Integer, primary_key=True) 
+    password = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(1000), nullable=False)
 
-    id = Column(Integer, primary_key=True, index=True)
-    type_of_deal = Column(Enum(SaleType), nullable=False)
-    type_of_building = Column(Enum(HouseType), nullable=False)
-    url = Column(String, nullable=False, unique=True)
-    cost = Column(Integer, nullable=False)
-    rooms_count = Column(Integer, nullable=False)
-    address = Column(String, nullable=False)
-    floor = Column(Integer, nullable=False)
-    square = Column(Float, nullable=False)
-    add_date = Column(DateTime, default=datetime.utcnow)
+class Apartment(db.Model):
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+    __tablename__ = 'flat'
+
+    id = db.Column(db.Integer, primary_key=True, index=True)
+    type_of_deal = db.Column(db.String, nullable=False)
+    type_of_building = db.Column(db.String, nullable=False)
+    url = db.Column(db.String, nullable=False)
+    cost = db.Column(db.Integer, nullable=False)
+    rooms_count = db.Column(db.Integer, nullable=False)
+    address = db.Column(db.String, nullable=False)
+    floor = db.Column(db.Integer, nullable=False)
+    square = db.Column(db.Float, nullable=False)
+    add_date = db.Column(db.DateTime, default=datetime.utcnow)

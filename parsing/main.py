@@ -121,7 +121,7 @@ def main():
 
     apartments: list[Apartment] = []
     
-    meta.create_all(engine)
+    #meta.create_all(engine)
     
     feed_pages = count_apartments(feed_pages, 1000)
 

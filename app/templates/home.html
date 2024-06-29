@@ -10,9 +10,9 @@
     <header>
         <h1>Available Apartments</h1>
         {% if current_user.is_authenticated %}
-            <p>Hello, {{ current_user.username }}! <a href="{{ url_for('logout') }}">Logout</a></p>
+            <p>Hello, {{ current_user.name }}! <a href="{{ url_for('routes.logout') }}">Logout</a></p>
         {% else %}
-            <p><a href="{{ url_for('login') }}">Login</a> | <a href="{{ url_for('register') }}">Register</a></p>
+            <p><a href="{{ url_for('routes.login') }}">Login</a> | <a href="{{ url_for('routes.register') }}">Register</a></p>
         {% endif %}
     </header>
 
