@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Apartments</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Available Apartments</h1>
+        {% if current_user.is_authenticated %}
+            <p>Hello, {{ current_user.username }}! <a href="{{ url_for('logout') }}">Logout</a></p>
+        {% else %}
+            <p><a href="{{ url_for('login') }}">Login</a> | <a href="{{ url_for('register') }}">Register</a></p>
+        {% endif %}
+    </header>
+
+    <main>
+        <ul>
+            {% for apartment in apartments %}
+                <li>
+                    <h2>{{ apartment.street }} {{ apartment.house }}</h2>
+                    <p>{{ apartment.rooms_count }} rooms, {{ apartment.floor }} floor, {{ apartment.square }} m²</p>
+                    <p>Cost: {{ apartment.cost }}</p>
+                    <p>Type of deal: {{ apartment.type_of_deal }}</p>
+                    <p>Type of building: {{ apartment.type_of_building }}</p>
+                    <p><a href="{{ apartment.url }}" target="_blank">View Details</a></p>
+                </li>
+            {% endfor %}
+        </ul>
+    </main>
+
+</body>
+</html>

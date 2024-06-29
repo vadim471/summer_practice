@@ -3,8 +3,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from enum import Enum as PyEnum
 from Apartment import HouseType, SaleType
+from app import login_manager, db
+from flask_login import UserMixin
+
 
 Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(150), unique=True, nullable=False)
+    password = Column(String(50), nullable=False)
 
 class Apartment(Base):
     __tablename__ = "flat"
@@ -19,3 +28,7 @@ class Apartment(Base):
     floor = Column(Integer, nullable=False)
     square = Column(Float, nullable=False)
     add_date = Column(DateTime, default=datetime.utcnow)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))

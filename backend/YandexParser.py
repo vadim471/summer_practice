@@ -1,14 +1,24 @@
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
 import re
 
 from Apartment import HouseType, Apartment, SaleType
 from Parser import Parser
 from selenium.webdriver.common.by import By
 
+from URLType import URLType
+
 
 class YandexParser(Parser):
-    def parse_feed_page(self, url: str, type: HouseType, sale_type: SaleType) -> list[str]:
-        pass
+    def parse_feed_page(self, html_content: str, url_type: URLType) -> list[Apartment]:
+        soup = BeautifulSoup(html_content, "html.parser")
+        cards = soup.find_all("div", {"class": "Link__click-area"})
+
+        apartments = []
+
+        for i, card in enumerate(cards): 
+            apartments.append(self.parse_card(card, url_type.house_type))
+            
+        return apartments
 
     def parse_card(self, offer: Tag, house_type: HouseType) -> Apartment:
         link = offer.find_element(By.CSS_SELECTOR, '.OffersSerpItem__link').get_attribute('href')
@@ -22,7 +32,8 @@ class YandexParser(Parser):
         # type_of_deal = get_deal_type(url)
         sale_type = SaleType.SALE
 
-        if 
+        if 'месяц' in offer.find_element(By.CSS_SELECTOR, '.OffersSerpItem__price').text:
+            sale_type = SaleType.RENT
         address = offer.find_element(By.CSS_SELECTOR, '.AddressWithGeoLinks__addressContainer--4jzfZ').text
         return Apartment(
             address, cost, square, rooms_count, floor, sale_type, house_type
