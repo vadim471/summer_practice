@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Available Apartments</title>
     <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.css">
 </head>
 <body>
     <header>
@@ -15,21 +16,158 @@
             <p><a href="{{ url_for('routes.login') }}">Login</a> | <a href="{{ url_for('routes.register') }}">Register</a></p>
         {% endif %}
     </header>
+    <div class="container">
+        <aside class="filters">
+            <form method="GET" action="{{ url_for('routes.home') }}">
+                <div class="filter-item">
+                    <label for="deal_type">Тип сделки:</label>
+                    <select name="deal_type" id="deal_type" onchange="updateCostSlider()">
+                        <option value="">Любой</option>
+                        <option value="RENT">Аренда</option>
+                        <option value="SALE">Продажа</option>
+                    </select>
+                </div>
 
-    <main>
-        <ul>
-            {% for apartment in apartments %}
-                <li>
-                    <h2>{{ apartment.street }} {{ apartment.house }}</h2>
-                    <p>{{ apartment.rooms_count }} rooms, {{ apartment.floor }} floor, {{ apartment.square }} m²</p>
-                    <p>Cost: {{ apartment.cost }}</p>
-                    <p>Type of deal: {{ apartment.type_of_deal }}</p>
-                    <p>Type of building: {{ apartment.type_of_building }}</p>
-                    <p><a href="{{ apartment.url }}" target="_blank">View Details</a></p>
-                </li>
-            {% endfor %}
-        </ul>
-    </main>
+                <div class="filter-item">
+                    <label>Стоимость: <span id="cost-value"></span></label>
+                    <div id="cost-slider"></div>
+                    <input type="hidden" name="min_cost" id="min_cost">
+                    <input type="hidden" name="max_cost" id="max_cost">
+                </div>
 
+                <div class="filter-item">
+                    <label>Цена за кв.м: <span id="price-per-sqm-value"></span></label>
+                    <div id="price-per-sqm-slider"></div>
+                    <input type="hidden" name="min_price_per_sqm" id="min_price_per_sqm">
+                    <input type="hidden" name="max_price_per_sqm" id="max_price_per_sqm">
+                </div>
+
+                <div class="filter-item">
+                    <label>Этаж: <span id="floor-value"></span></label>
+                    <div id="floor-slider"></div>
+                    <input type="hidden" name="min_floor" id="min_floor">
+                    <input type="hidden" name="max_floor" id="max_floor">
+                </div>
+
+                <div class="filter-item">
+                    <label for="building_type">Тип здания:</label>
+                    <select name="building_type" id="building_type">
+                        <option value="">Любой</option>
+                        <option value="NEW">Новое</option>
+                        <option value="SECONDARY">Вторичное</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Площадь: <span id="area-value"></span></label>
+                    <div id="area-slider"></div>
+                    <input type="hidden" name="min_area" id="min_area">
+                    <input type="hidden" name="max_area" id="max_area">
+                </div>
+
+                <div class="filter-item">
+                    <label for="rooms_count">Количество комнат:</label>
+                    <input type="number" name="rooms_count" id="rooms_count" placeholder="1">
+                </div>
+
+                <div class="filter-item">
+                    <label for="address">Адрес:</label>
+                    <input type="text" name="address" id="address" placeholder="Введите адрес">
+                </div>
+
+                <div class="button-wrap">
+                    <button type="submit">Фильтровать</button>
+                </div>
+            </form>
+        </aside>
+        <main class="apartments">
+            <ul>
+                {% for apartment in apartments %}
+                    <li>
+                        <h2>{{ apartment.street }} {{ apartment.house }}</h2>
+                        <p>{{ apartment.rooms_count }} rooms, {{ apartment.floor }} floor, {{ apartment.square }} m²</p>
+                        <p>Cost: {{ apartment.cost }}</p>
+                        <p>Type of deal: {{ apartment.type_of_deal }}</p>
+                        <p>Type of building: {{ apartment.type_of_building }}</p>
+                        <p><a href="{{ apartment.url }}" target="_blank">View Details</a></p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.js"></script>
+    <script>
+        function createSlider(sliderElement, minInput, maxInput, minValue, maxValue, step, displayElement) {
+            noUiSlider.create(sliderElement, {
+                start: [minValue, maxValue],
+                connect: true,
+                range: {
+                    'min': minValue,
+                    'max': maxValue
+                },
+                step: step,
+                format: {
+                    to: function (value) {
+                        return Math.round(value);
+                    },
+                    from: function (value) {
+                        return Number(value);
+                    }
+                }
+            });
+
+            sliderElement.noUiSlider.on('update', function (values, handle) {
+                minInput.value = values[0];
+                maxInput.value = values[1];
+                displayElement.innerHTML = values[0] + ' - ' + values[1];
+            });
+        }
+        function updateCostSlider() {
+            const dealType = document.getElementById('deal_type').value;
+            let min = 0, max = 10000000, step = 1000;
+
+            if (dealType === 'RENT') {
+                max = 200000;
+                step = 100;
+            } else if (dealType === 'SALE') {
+                max = 10000000;
+                step = 1000;
+            }
+
+            const costSlider = document.getElementById('cost-slider');
+            costSlider.noUiSlider.updateOptions({
+                range: {
+                    'min': min,
+                    'max': max
+                },
+                step: step
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            createSlider(document.getElementById('cost-slider'), 
+                         document.getElementById('min_cost'), 
+                         document.getElementById('max_cost'), 0, 10000000, 1000,
+                         document.getElementById('cost-value'));
+
+            createSlider(document.getElementById('price-per-sqm-slider'), 
+                         document.getElementById('min_price_per_sqm'), 
+                         document.getElementById('max_price_per_sqm'), 0, 100000, 100,
+                         document.getElementById('price-per-sqm-value'));
+
+            createSlider(document.getElementById('floor-slider'), 
+                         document.getElementById('min_floor'), 
+                         document.getElementById('max_floor'), 1, 20, 1,
+                         document.getElementById('floor-value'));
+
+            createSlider(document.getElementById('area-slider'), 
+                         document.getElementById('min_area'), 
+                         document.getElementById('max_area'), 0, 1000, 10,
+                         document.getElementById('area-value'));
+            updateCostSlider();
+        });
+        
+    </script>
 </body>
 </html>

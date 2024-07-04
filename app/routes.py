@@ -7,7 +7,47 @@ routes = Blueprint('routes', __name__)
 
 @routes.route('/')
 def home():
-    apartments = Apartment.query.all()
+    query = Apartment.query
+
+    deal_type = request.args.get('deal_type')
+    min_cost = request.args.get('min_cost')
+    max_cost = request.args.get('max_cost')
+    min_price_per_sqm = request.args.get('min_price_per_sqm')
+    max_price_per_sqm = request.args.get('max_price_per_sqm')
+    min_floor = request.args.get('min_floor')
+    max_floor = request.args.get('max_floor')
+    building_type = request.args.get('building_type')
+    min_area = request.args.get('min_area')
+    max_area = request.args.get('max_area')
+    rooms_count = request.args.get('rooms_count')
+    address = request.args.get('address')
+
+    if deal_type:
+        query = query.filter(Apartment.type_of_deal == deal_type)
+    if min_cost:
+        query = query.filter(Apartment.cost >= min_cost)
+    if max_cost:
+        query = query.filter(Apartment.cost <= max_cost)
+    if min_price_per_sqm:
+        query = query.filter(Apartment.cost / Apartment.square >= min_price_per_sqm)
+    if max_price_per_sqm:
+        query = query.filter(Apartment.cost / Apartment.square <= max_price_per_sqm)
+    if min_floor:
+        query = query.filter(Apartment.floor >= min_floor)
+    if max_floor:
+        query = query.filter(Apartment.floor <= max_floor)
+    if building_type:
+        query = query.filter(Apartment.type_of_building == building_type)
+    if min_area:
+        query = query.filter(Apartment.square >= min_area)
+    if max_area:
+        query = query.filter(Apartment.square <= max_area)
+    if rooms_count:
+        query = query.filter(Apartment.rooms_count == rooms_count)
+    if address:
+        query = query.filter(Apartment.address.ilike(f"%{address}%"))
+
+    apartments = query.all()
     return render_template('home.html', apartments=apartments)
 
 

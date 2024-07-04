@@ -1,9 +1,9 @@
 import re
-from Apartment import Apartment, HouseType, SaleType
+from .Apartment import Apartment, HouseType, SaleType
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from Apartment import Apartment, SaleType
-from URLType import URLType
+from .URLType import URLType
+from .HTMLFetch import HTMLFetcher
 
 class CianParser:
     def parse_title(self, title: Tag) -> None | tuple[int, float, int]:
@@ -80,3 +80,11 @@ class CianParser:
             else:
                 break
         return apartments
+    
+    def parse_url_flat(self, url: str) -> int:
+        html_content = HTMLFetcher().fetch_html(url)
+        soup = BeautifulSoup(html_content, "html.parser")
+        cost_text = soup.find("div", {"data-testid" : "price-amount"}).get_text()
+        cost = int(cost_text.replace('\xa0', '').split('₽')[0])
+        
+        return cost
