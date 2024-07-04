@@ -1,4 +1,6 @@
 from flask import render_template, url_for, redirect, request, Blueprint
+
+from app.MapService import MapService
 from app.models import User, Apartment
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db
@@ -8,7 +10,8 @@ routes = Blueprint('routes', __name__)
 @routes.route('/')
 def home():
     apartments = Apartment.query.all()
-    return render_template('home.html', apartments=apartments)
+    header, body, script = MapService.get_map(apartments)
+    return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
 
 
 @routes.route('/register', methods=['GET', 'POST'])
@@ -42,3 +45,21 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('routes.home'))
+
+
+@routes.route('/like', methods=['POST'])
+def like():
+    data = request.get_json()
+    apartment_id = data.get('apartmentId')
+    # добавление в избранное
+
+
+@routes.route('/get_apartments_in_radius', methods=['POST'])
+def get_radius():
+    data = request.get_json()
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    apartments = Apartment.query.all()
+    new_apartments = MapService.get_apartments_in_radius(apartments, latitude, longitude)
+    header, body, script = MapService.get_map(apartments)
+    return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)

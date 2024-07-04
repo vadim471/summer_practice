@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Available Apartments</title>
     <link rel="stylesheet" href="../static/style.css">
+    {{ header|safe }}
 </head>
 <body>
     <header>
@@ -16,7 +17,27 @@
         {% endif %}
     </header>
 
+    <script>
+    window.addEventListener('message', function(e) {
+          fetch('/like', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ apartmentId: e.data.data })
+              })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Ошибка при отправке запроса');
+                }
+              })
+    });
+    </script>
+
     <main>
+        <div class="content">
+                {{ body_html|safe }}
+        </div>
         <ul>
             {% for apartment in apartments %}
                 <li>
@@ -30,6 +51,10 @@
             {% endfor %}
         </ul>
     </main>
+
+<script>
+    {{ script|safe }}
+</script>
 
 </body>
 </html>
