@@ -1,9 +1,10 @@
 from app import create_app
-from app import update_ad
+from app.update_ad import ApartmentUpdateService
 
 app = create_app()
-update_ad.check_and_update_announcements()
+service = ApartmentUpdateService()
 
 
 if __name__ == '__main__':
     app.run(host='192.168.88.10', debug = True)
+    #service.run()

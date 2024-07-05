@@ -19,6 +19,8 @@ header a {
 
 main {
     padding: 2rem;
+    height: 1000px;
+    width: 1000px;
 }
 
 ul {

@@ -6,6 +6,7 @@
     <title>Available Apartments</title>
     <link rel="stylesheet" href="../static/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.css">
+    {{ header|safe }}
 </head>
 <body>
     <header>
@@ -16,6 +17,22 @@
             <p><a href="{{ url_for('routes.login') }}">Login</a> | <a href="{{ url_for('routes.register') }}">Register</a></p>
         {% endif %}
     </header>
+    <script>
+        window.addEventListener('message', function(e) {
+            fetch('/like', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ apartmentId: e.data.data })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при отправке запроса');
+                }
+            })
+    });
+    </script>
     <div class="container">
         <aside class="filters">
             <form method="GET" action="{{ url_for('routes.home') }}">
@@ -80,7 +97,11 @@
                 </div>
             </form>
         </aside>
-        <main class="apartments">
+      
+        <main class="content">
+            
+            {{ body_html|safe }}
+            <!--
             <ul>
                 {% for apartment in apartments %}
                     <li>
@@ -93,8 +114,11 @@
                     </li>
                 {% endfor %}
             </ul>
+           -->
         </main>
     </div>
+    
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.js"></script>
     <script>
         function createSlider(sliderElement, minInput, maxInput, minValue, maxValue, step, displayElement) {
@@ -168,6 +192,9 @@
             updateCostSlider();
         });
         
+    </script>
+    <script>
+        {{ script|safe }}
     </script>
 </body>
 </html>

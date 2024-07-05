@@ -1,11 +1,12 @@
 from bs4 import BeautifulSoup, Tag
 import re
-
-from parsing.Apartment import HouseType, Apartment, SaleType
-
 from selenium.webdriver.common.by import By
 
-from parsing.URLType import URLType
+
+
+from parsing import URLType
+from parsing.Apartment import Apartment, HouseType, SaleType
+from parsing.HTMLFetch import HTMLFetcher
 
 
 class YandexParser:
@@ -40,7 +41,7 @@ class YandexParser:
             sale_type = SaleType.RENT
         address = offer.find( "div", {"class" : "AddressWithGeoLinks__addressContainer--4jzfZ"}).get_text()
         return Apartment(
-            address, cost, square, rooms_count, floor, sale_type, house_type, link
+            address, cost, square, rooms_count, floor, sale_type, house_type, link, 
         )
 
     def get_rooms_count(self, title) -> int:
@@ -58,6 +59,12 @@ class YandexParser:
     def get_square(self, title) -> float:
         square_match = re.search(r'(\d+(?:,\d+)?)м²', title)
         return float(square_match.group(1).replace(',', '.')) if square_match else 0
+      
+    def parse_url_flat(self, url: str) -> int:
+        html_content = HTMLFetcher().fetch_html(url)
+        soup = BeautifulSoup(html_content, "html.parser")
+        cost_text = soup.find("span", {"class" : "OfferCardSummaryInfo__price--2FD3C OfferCardSummaryInfo__priceWithLeftMargin--3I6Y8"}).get_text()
+        cost = int(cost_text.replace('\xa0', '').split('₽')[0])
+        
+        return cost
     
-    def parse_url_flat() -> int:
-        pass

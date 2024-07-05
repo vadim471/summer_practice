@@ -5,18 +5,19 @@ import re
 import bs4
 import requests
 from sqlalchemy import DateTime, Float, MetaData, Table, Column, Integer, String, Enum as Sqlenum
-from CianParser import CianParser
-from YandexParser import YandexParser
-from HTMLFetch import HTMLFetcher
-from Parser import Parser
-from Apartment import Apartment, HouseType, SaleType
-from URLType import FeedType, URLType
+
 from database import SessionLocal, engine
 from models import Base, Apartment
 from sqlalchemy.orm import Session
 
+from URLType import FeedType, URLType
+from CianParser import CianParser
+from YandexParser import YandexParser
+from Apartment import HouseType, SaleType
+from HTMLFetch import HTMLFetcher
 
-
+    
+    
 def count_apartments_cian(feed_pages: list[URLType], needed_count: int) -> list[URLType]:
     total_request = requests.get(
         "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_type=flat&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1"
@@ -80,9 +81,9 @@ def count_apartments_yandex(feed_pages: list[URLType], needed_count: int) -> lis
     #<span class="OffersSerpSortSelect__totalCount--1Odl5">7&nbsp;876 объявлений:</span>
     #<p class="ListingExtraText__text--2QLI3">Купить квартиру в Челябинске. — 7&nbsp;877 объявлений от агентств и собственников по продаже квартир по цене от 790&nbsp;000&nbsp;₽ до 39&nbsp;500&nbsp;000&nbsp;₽ на Яндекс Недвижимости. В нашем каталоге предложения площадью от 13&nbsp;м² до 1&nbsp;101&nbsp;м² в новостройках и вторичном жилье — фото, планировки и характеристики.</p>
     parser = bs4.BeautifulSoup(total_request_sale.text, "html.parser")
-    total_raw = parser.find('p').get_text()
+    total_raw = parser.find("span", {"class": "OffersSerpSortSelect__totalCount--1Odl5"}).get_text().replace('\xa0', '')
     #total_raw = parser.find('p', class_='ListingExtraText__text--2QLI3')
-    total = int(re.findall(r"\d+", total_raw.get_text().replace('\xa0', ''))[0])
+    total = int(re.findall(r"\d+", total_raw)[0])
     
 
     total_secondary = 0
@@ -91,7 +92,7 @@ def count_apartments_yandex(feed_pages: list[URLType], needed_count: int) -> lis
             new_request = requests.get(page.url)
 
             parser = bs4.BeautifulSoup(new_request.text, "html.parser")
-            new_raw = parser.find("div", {"class": "OffersSearchPageListing__sort--GZ5QI"}).get_text()
+            new_raw = parser.find("span", {"class": "OffersSerpSortSelect__totalCount--1Odl5"}).get_text().replace('\xa0', '')
             #new_raw = parser.find("span").get_text()
             page.count = int(
                 int(re.findall(r"\d+", new_raw)[0])
@@ -147,11 +148,11 @@ def main():
         ),
     ]
 
-
     session = SessionLocal()
     parser = CianParser()
     fetcher = HTMLFetcher()
-    #parser.parse_url_flat("https://chelyabinsk.cian.ru/sale/flat/299324143/")
+    apartments: list[Apartment] = []
+    
     meta=MetaData()
     t=Table(
         "flat",
@@ -166,14 +167,16 @@ def main():
         Column('floor', Integer, nullable=False),
         Column('square', Float, nullable=False),
         Column('add_date', DateTime, default=datetime.utcnow),
+        Column('longitude', Float, nullable=False),
+        Column('latitude', Float, nullable=False)
     )
    
     
-    apartments: list[Apartment] = []
     
-    #meta.create_all(engine)
-    """
-    feed_pages = count_apartments_cian(feed_pages, 5)
+    
+    meta.create_all(engine)
+   
+    feed_pages = count_apartments_cian(feed_pages, 20)
 
     for page in feed_pages:
         curr_card = 0
@@ -186,9 +189,8 @@ def main():
             curr_page += 1
             curr_card += len(page_apartments)
             apartments.extend(page_apartments)
-    print(apartments)
+    
     for apartment in apartments:
-
         db_apartment = Apartment(
             type_of_deal=apartment.sale_type,
             type_of_building=apartment.house_type,
@@ -198,21 +200,20 @@ def main():
             address=apartment.address,
             floor=apartment.floor,
             square=apartment.square,
-            add_date=datetime.now()
+            add_date=datetime.now(),
+            longitude=apartment.longitude,
+            latitude=apartment.latitude
         )
         session.add(db_apartment)
     session.commit()
-    """
-   
-    parser = YandexParser()
+ 
     apartments: list[Apartment] = []
-
-
+    parser = YandexParser()
     feed_pages: list[URLType] = [
         URLType(
             HouseType.NEW,
             "https://realty.ya.ru/chelyabinsk/kupit/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&newFlat=YES?page=0",
-            30,
+            10,
             SaleType.SALE,
             FeedType.NEW_SALE,
         ),
@@ -226,7 +227,7 @@ def main():
         URLType(
             HouseType.SECONDARY,
             "https://realty.ya.ru/chelyabinsk/snyat/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4?page=0",
-            20,
+            10,
             SaleType.RENT,
             FeedType.SECONDARY_RENT,
         ),
@@ -244,9 +245,7 @@ def main():
             curr_page += 1
             curr_card += len(page_apartments)
             apartments.extend(page_apartments)
-    print(apartments)
-   
-    """
+  
     for apartment in apartments:
         db_apartment = Apartment(
             type_of_deal=apartment.sale_type,
@@ -257,11 +256,13 @@ def main():
             address=apartment.address,
             floor=apartment.floor,
             square=apartment.square,
-            add_date=datetime.now()
+            add_date=datetime.now(),
+            longitude=apartment.longitude,
+            latitude=apartment.latitude
         )
         session.add(db_apartment)
     session.commit()    
-    """
+ 
 
     session.close()
 

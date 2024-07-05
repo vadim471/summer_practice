@@ -2,6 +2,7 @@ from flask import render_template, url_for, redirect, request, Blueprint
 from app.models import User, Apartment
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db
+from app.MapService import MapService
 
 routes = Blueprint('routes', __name__)
 
@@ -21,6 +22,8 @@ def home():
     max_area = request.args.get('max_area')
     rooms_count = request.args.get('rooms_count')
     address = request.args.get('address')
+    longitude = request.args.get('longitude')
+    latitude = request.args.get('latitude')
 
     if deal_type:
         query = query.filter(Apartment.type_of_deal == deal_type)
@@ -46,9 +49,15 @@ def home():
         query = query.filter(Apartment.rooms_count == rooms_count)
     if address:
         query = query.filter(Apartment.address.ilike(f"%{address}%"))
+    if latitude:
+        query = query.filter(Apartment.latitude == latitude)
+    if longitude:
+        query = query.filter(Apartment.longitude == longitude)
 
     apartments = query.all()
-    return render_template('home.html', apartments=apartments)
+    header, body, script = MapService.get_map(apartments)
+    return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
+    
 
 
 @routes.route('/register', methods=['GET', 'POST'])
@@ -82,3 +91,20 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('routes.home'))
+
+@routes.route('/like', methods=['POST'])
+def like():
+    data = request.get_json()
+    apartment_id = data.get('apartmentId')
+    # добавление в избранное
+
+
+@routes.route('/get_apartments_in_radius', methods=['POST'])
+def get_radius():
+    data = request.get_json()
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    apartments = Apartment.query.all()
+    new_apartments = MapService.get_apartments_in_radius(apartments, latitude, longitude)
+    header, body, script = MapService.get_map(apartments)
+    return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)

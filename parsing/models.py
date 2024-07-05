@@ -3,15 +3,21 @@ from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from enum import Enum as PyEnum
 from Apartment import HouseType, SaleType
-
+import enum
 
 Base = declarative_base()
 
+class UserRole(enum.Enum):
+    user = "user"
+    admin = "admin"
+    
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(150), unique=True, nullable=False)
     password = Column(String(50), nullable=False)
+    role = Column(Enum(UserRole), default=UserRole.user)
+    tokents_count = Column(Integer, default=10)
 
 class Apartment(Base):
     __tablename__ = "flat"
@@ -26,3 +32,5 @@ class Apartment(Base):
     floor = Column(Integer, nullable=False)
     square = Column(Float, nullable=False)
     add_date = Column(DateTime, default=datetime.utcnow)
+    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)

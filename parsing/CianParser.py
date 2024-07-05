@@ -4,8 +4,20 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 from .URLType import URLType
 from .HTMLFetch import HTMLFetcher
+from geopy.geocoders import Nominatim
 
 class CianParser:
+    
+    def get_coordinate(self, address : str) -> tuple[float, float]:
+        geolocator = Nominatim(user_agent="Tester")
+        parts = address.replace('р-н', 'район').split(',')
+        
+        for i in range(len(parts), 0, -1):
+            current_address = ', '.join(parts[:i]).strip()
+            location = geolocator.geocode(current_address)
+            if location:
+                return (location.latitude, location.longitude)
+    
     def parse_title(self, title: Tag) -> None | tuple[int, float, int]:
         regex = r"(?:(\d+?)\-комн.) .+?\, ((?:\d+)(?:,\d+)?) .+? (\d+)\/\d+"
 
@@ -63,8 +75,11 @@ class CianParser:
         )
         url_tag = card_tag.find("a", href = True)
         url = url_tag['href']
+        coordinates = self.get_coordinate(address)
+        longitude, latitude = coordinates
+       
         return Apartment(
-            address, main_price, area, rooms, floor, sale_type, house_type, url
+            address, main_price, area, rooms, floor, sale_type, house_type, url, longitude, latitude
         )
 
     def parse_feed_page(self, html_content: str, url_type: URLType, sum_card: int) -> list[Apartment]:

@@ -10,6 +10,8 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True) 
     password = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(1000), nullable=False)
+    role = db.Column(db.String(10), nullable=False, default="user")
+    tokens_count = db.Column(db.Integer, default=10)
 
 class Apartment(db.Model):
 
@@ -25,3 +27,5 @@ class Apartment(db.Model):
     floor = db.Column(db.Integer, nullable=False)
     square = db.Column(db.Float, nullable=False)
     add_date = db.Column(db.DateTime, default=datetime.utcnow)
+    longitude = db.Column(db.Float, nullable=True)
+    latitude = db.Column(db.Float, nullable=True)
