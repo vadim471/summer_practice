@@ -113,14 +113,14 @@ def user_dashboard():
 @routes.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
-    if current_user.role != "admin":
+    if current_user.role != models.UserRole.admin:
         return redirect(url_for('routes.home'))
     return render_template('admin_dashboard.html', admin=current_user)
 
 @routes.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.role == "admin":
+    if current_user.role == models.UserRole.admin:
         return redirect(url_for('routes.admin_dashboard'))
     else:
         return redirect(url_for('routes.user_dashboard'))
