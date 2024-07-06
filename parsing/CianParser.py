@@ -58,7 +58,8 @@ class CianParser:
         if res is None and type(offer_subtitle) is Tag:
             res = self.parse_title(offer_subtitle)
         if res is None:
-            raise Exception("Can't parse title")
+            return None
+            
 
         rooms, area, floor = res
         main_price_raw = card_tag.find("span", {"data-mark": "MainPrice"})

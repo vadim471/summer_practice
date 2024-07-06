@@ -132,21 +132,21 @@ def fill_db():
         URLType(
             HouseType.NEW,
             "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=1&offer_type=flat&p=1&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
-            0,
+            2000,
             SaleType.SALE,
             FeedType.NEW_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
             "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=2&offer_seller_type%5B1%5D=3&offer_type=flat&p=1&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
-            0,
+            2800,
             SaleType.SALE,
             FeedType.SECONDARY_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
             "https://chelyabinsk.cian.ru/cat.php?deal_type=rent&engine_version=2&offer_type=flat&p=1&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1&type=4",
-            0,
+            260,
             SaleType.RENT,
             FeedType.SECONDARY_RENT,
         ),
@@ -157,8 +157,8 @@ def fill_db():
     fetcher = HTMLFetcher()
     apartments: list[models.Apartment] = []
     
-    """
-    feed_pages = count_apartments_cian(feed_pages, 5)
+    
+    #feed_pages = count_apartments_cian(feed_pages, 5000)
 
     for page in feed_pages:
         curr_card = 0
@@ -188,28 +188,28 @@ def fill_db():
             )
         session.add(db_apartment)
     session.commit()
-    """
+    
     apartments: list[models.Apartment] = []
     parser = YandexParser()
     feed_pages: list[URLType] = [
         URLType(
             HouseType.NEW,
             "https://realty.ya.ru/chelyabinsk/kupit/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&newFlat=YES?page=0",
-            2,
+            1000,
             SaleType.SALE,
             FeedType.NEW_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
             "https://realty.ya.ru/chelyabinsk/kupit/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&newFlat=NO?page=0",
-            2,
+            1000,
             SaleType.SALE,
             FeedType.SECONDARY_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
             "https://realty.ya.ru/chelyabinsk/snyat/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4?page=0",
-            2,
+            150,
             SaleType.RENT,
             FeedType.SECONDARY_RENT,
         ),

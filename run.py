@@ -1,7 +1,6 @@
 from app import create_app
 from app import UpdateService
 
-
 app = create_app()
 updateService = UpdateService
 
