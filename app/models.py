@@ -22,7 +22,7 @@ class User(UserMixin, Base):
     name = Column(String(150), unique=True, nullable=False) 
     password = Column(String(50), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user)
-    tokens_count = Column(Integer, default=10)
+    tokens_count = Column(Integer, default=50)
 
 class Apartment(Base):
     __tablename__ = "flat"

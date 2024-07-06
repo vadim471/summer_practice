@@ -12,7 +12,7 @@ def create_app():
     db.init_app(app)
 
     login_manager = LoginManager()
-    login_manager.login_view = 'register'
+    login_manager.login_view = 'routes.register'
     login_manager.init_app(app)
 
     from .models import User

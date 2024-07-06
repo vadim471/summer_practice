@@ -56,7 +56,7 @@ def home():
             current_user.tokens_count -= 1
             db.session.commit()
         else:
-            return redirect(url_for('no_tokens'))
+            return redirect(url_for('routes.no_tokens'))
 
     apartments = query.all()
     header, body, script = MapService.get_map(apartments)
