@@ -1,5 +1,5 @@
 from enum import Enum
-from Apartment import HouseType, SaleType
+from .Apartment import HouseType, SaleType
 
 
 class FeedType(Enum):

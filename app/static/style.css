@@ -19,6 +19,8 @@ header a {
 
 main {
     padding: 2rem;
+    height: 1000px;
+    width: 1000px;
 }
 
 ul {
@@ -45,4 +47,72 @@ footer {
     position: fixed;
     bottom: 0;
     width: 100%;
+}
+button {
+    padding: 20px, 40px;
+    background-color: #4d4d4d;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+.button-wrap{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+.container{
+    display: flex;
+}
+aside.filters{
+    width: 25%;
+    padding: 20px;
+    background-color: #f1f1f1;
+    border-right: 1px, solid #ddd ;
+}
+main.apartments {
+    width: 75%;
+    padding: 20px;
+}
+.filter-item{
+    margin-bottom: 20px;
+}
+.filter-item label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.filter-item select,
+.filter-item input {
+    width: 100%;
+}
+
+#cost-slider, 
+#price-per-sqm-slider, 
+#floor-slider, 
+#area-slider {
+    margin-top: 10px;
+}
+
+button {
+    margin-top: 20px;
+}
+
+main ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+main li {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+main li h2 {
+    margin: 0 0 10px 0;
+}
+
+main li p {
+    margin: 5px 0;
 }
