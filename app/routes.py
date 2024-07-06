@@ -1,9 +1,13 @@
-from flask import render_template, url_for, redirect, request, Blueprint
+from flask import jsonify, render_template, url_for, redirect, request, Blueprint
 from . import models
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db
 from app.MapService import MapService
+from datetime import datetime, timedelta
 
+from .StatisticsService import StatisticsService
+
+from flask import render_template, url_for, redirect, request, Blueprint, jsonify
 routes = Blueprint('routes', __name__)
 
 @routes.route('/')
@@ -13,6 +17,7 @@ def home():
     query = db.session.query(models.Apartment)
 
     deal_type = request.args.get('deal_type')
+    clusters_num = request.args.get('cluster_num')
     min_cost = request.args.get('min_cost')
     max_cost = request.args.get('max_cost')
     min_price_per_sqm = request.args.get('min_price_per_sqm')
@@ -24,6 +29,9 @@ def home():
     max_area = request.args.get('max_area')
     rooms_count = request.args.get('rooms_count')
     address = request.args.get('address')
+    location = request.args.get('location')
+    latitude = request.args.get('latitude')
+    longitude = request.args.get('longitude')
 
 
     if deal_type:
@@ -48,8 +56,7 @@ def home():
         query = query.filter(models.Apartment.square <= max_area)
     if rooms_count:
         query = query.filter(models.Apartment.rooms_count == rooms_count)
-    if address:
-        query = query.filter(models.Apartment.address.ilike(f"%{address}%"))
+  
 
     if current_user.is_authenticated:
         if current_user.tokens_count > 0:
@@ -59,7 +66,12 @@ def home():
             return redirect(url_for('routes.no_tokens'))
 
     apartments = query.all()
-    header, body, script = MapService.get_map(apartments)
+    if location and latitude and longitude:
+        apartments = MapService.get_apartments_in_radius(apartments, float(latitude), float(longitude))
+
+    if not clusters_num:
+        clusters_num = 0
+    header, body, script = MapService.get_map(apartments, int(clusters_num))
     return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
     
 
@@ -120,7 +132,8 @@ def get_radius():
 @routes.route('/user_dashboard')
 @login_required
 def user_dashboard():
-    return render_template('user_dashboard.html', user=current_user)
+    viewed_apartments = db.session.query(models.UserViewedApartment).filter_by(user_id = current_user.id).all()
+    return render_template('user_dashboard.html', user = current_user, viewed_apartments = viewed_apartments)
     
 @routes.route('/admin_dashboard')
 @login_required
@@ -136,3 +149,24 @@ def dashboard():
         return redirect(url_for('routes.admin_dashboard'))
     else:
         return redirect(url_for('routes.user_dashboard'))
+
+@routes.route('/add_to_viewed', methods=['GET','POST'])
+@login_required
+def add_to_viewed():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"})
+    data = request.get_json()
+    apartment_id = data.get('apartment_id')
+    
+    user = current_user
+    
+    apartment = db.session.query(models.Apartment).filter_by(id=apartment_id).first()
+
+    new_viewed_apartment = models.UserViewedApartment(
+            user_id=user.id,
+            apartment_id=apartment_id
+        )
+    db.session.add(new_viewed_apartment)
+    db.session.commit()
+    
+    return jsonify({'message': 'Apartment added to viewed list'}) 

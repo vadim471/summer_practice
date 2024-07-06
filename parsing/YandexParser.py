@@ -9,7 +9,7 @@ from geopy.geocoders import Nominatim
 
 class YandexParser:
     def get_coordinate(self, address : str) -> tuple[float, float]:
-        geolocator = Nominatim(user_agent="Tester")
+        geolocator = Nominatim(user_agent='tissen.vadimka@mail.ru')
         parts = address.replace('р-н', 'район').split(',')
         
         for i in range(len(parts), 0, -1):

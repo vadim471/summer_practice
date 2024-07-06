@@ -1,5 +1,6 @@
 from flask_login import UserMixin
-from sqlalchemy import Column, Integer, String, Float, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
 from .database import Base
@@ -23,6 +24,8 @@ class User(UserMixin, Base):
     password = Column(String(50), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user)
     tokens_count = Column(Integer, default=50)
+    registration_date = Column(DateTime, default=datetime.utcnow)
+    viewed_apartments = relationship('UserViewedApartment', back_populates='user')
 
 class Apartment(Base):
     __tablename__ = "flat"
@@ -39,9 +42,18 @@ class Apartment(Base):
     add_date = Column(DateTime, default=datetime.utcnow)
     longitude = Column(Float, nullable=True)
     latitude = Column(Float, nullable=True)
+    viewed_by_users = relationship('UserViewedApartment', back_populates='apartment')
     
 
         
     def __str__(self):
         return f'Address: {self.address} Price: {self.price} rubs, Area: {self.square} m^2, Rooms: {self.rooms}, Url: {self.url}'
-    
+class UserViewedApartment(Base):
+    __tablename__ = 'user_viewed_apartments'
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    apartment_id = Column(Integer, ForeignKey('flat.id'), nullable=False)
+    viewed_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship('User', back_populates='viewed_apartments')
+    apartment = relationship('Apartment', back_populates='viewed_by_users')

@@ -7,12 +7,12 @@ from jinja2 import Template
 from pandas import DataFrame
 from sklearn.cluster import KMeans, SpectralClustering, AgglomerativeClustering
 from folium.plugins import MarkerCluster
-
+from app.models import SaleType
 
 class MapService:
     @staticmethod
     def get_map(apartments, clusters_number=5):
-        if len(apartments) < clusters_number:
+        if len(apartments) < clusters_number or clusters_number == 0:
             map_center = [55.1542, 61.4282]
             my_map = folium.Map(location=map_center, zoom_start=12, tiles='cartodbpositron')
             for apartment in apartments:
@@ -22,6 +22,7 @@ class MapService:
                     location=[apartment.latitude, apartment.longitude],
                     popup=Popup(iframe, min_width=350, max_width=350)
                 ).add_to(my_map)
+            GetLatLngPopup().add_to(my_map)
             my_map.get_root().render()
             header = my_map.get_root().header.render()
             body = my_map.get_root().html.render()
@@ -106,8 +107,8 @@ class MapService:
 
     @staticmethod
     def create_popup(apartment):
-        deal_type = "СНЯТЬ" if apartment.type_of_deal == "RENT" else "КУПИТЬ"
-        cost = f'{apartment.cost} ₽/месяц' if apartment.type_of_deal == "RENT" else f'{apartment.cost} ₽'
+        deal_type = "СНЯТЬ" if apartment.type_of_deal == SaleType.RENT else "КУПИТЬ"
+        cost = f'{apartment.cost} ₽/месяц' if apartment.type_of_deal == SaleType.RENT else f'{apartment.cost} ₽'
         rooms = MapService.format_rooms(apartment.rooms_count)
         return f"""
         <h3 style="font-family:verdana;">{deal_type}</h3>
@@ -116,7 +117,31 @@ class MapService:
         <p style="font-family:verdana;">{rooms}, {apartment.floor} этаж, {apartment.square} м^2 </p>
         <p style="font-family:verdana;"><a href="{apartment.url}">Объявление</a></p>
         <p style="font-family:verdana;"><button id="like_btn" onclick="like_apartment()" apartment-id="{apartment.id}">В избранное ❤</button></p>
-        <script>{MapService.add_like_js()}</script>
+        <script>{MapService.add_like_js()}
+            function view_apartment(apartment_id) {{
+                fetch('http://127.0.0.1:5000/add_to_viewed', {{
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {{
+                        'Content-type': 'application/json'
+                    }},
+                    body: JSON.stringify({{ apartment_id: apartment_id }})
+                }})
+                .then(response => response.json())
+                .then(data => {{
+                    if (data.message) {{
+                        alert(data.message);
+                        }} else if (data.error) {{
+                            alert(data.error);
+                        }}
+                    }})
+                    .catch(error => {{
+                        console.error('ERROR:', error);
+                    }});
+            }}
+            view_apartment({apartment.id});
+            
+        </script>
         """
 
     @staticmethod
@@ -161,50 +186,23 @@ class MapService:
             }}
         '''
 
-    @staticmethod
-    def add_cluster_animation():
-        return '''const markerCluster = document.querySelector('.leaflet-marker-icon.leaflet-marker-cluster');
-              function toggleClusterMarkers(show) {
-                const markers = markerCluster.querySelectorAll('.leaflet-marker-pane > *');
-                markers.forEach(marker => {
-                  marker.style.display = show ? 'block' : 'none';
-                });
-              }
-            
-              // Обработчик события zoomend для карты
-              const map = document.querySelector('.leaflet-container');
-              map.addEventListener('zoomend', function(event) {
-                if (event.target.getZoom() >= 10) { // Приближение
-                  toggleClusterMarkers(true); // Показывать маркеры
-                } else { // Удаление
-                  toggleClusterMarkers(false); // Скрывать маркеры
-                }
-              });
-          '''
+
 
 
 class GetLatLngPopup(LatLngPopup):
     _template = Template(u"""
             {% macro script(this, kwargs) %}
-                var {{this.get_name()}} = L.popup();
-                function latLngClick(e) {
-                    fetch('/get_apartments_in_radius', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ latitude: e.latlng.lat.toFixed(7),
-                                                longitude: e.latlng.lng.toFixed(7) })
-                         })
-                      .then(response => {
-                        if (!response.ok) {
-                          throw new Error('Ошибка при отправке запроса');
+                    var {{this.get_name()}} = L.popup();
+                    function latLngClick(e) {
+                        const latitudeInput = document.getElementById('latitude');
+                        const longitudeInput = document.getElementById('longitude');
+                        
+                        latitudeInput.value = e.latlng.lat.toFixed(7);
+                        longitudeInput.value = e.latlng.lng.toFixed(7);
                         }
-                      })
-                    }
-                {{this._parent.get_name()}}.on('click', latLngClick);
-            {% endmacro %}
-            """)
+                    {{this._parent.get_name()}}.on('click', latLngClick);
+                {% endmacro %}
+                """)
 
     def __init__(self):
         super(GetLatLngPopup, self).__init__()

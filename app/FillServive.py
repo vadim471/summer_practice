@@ -228,25 +228,23 @@ def fill_db():
             curr_page += 1
             curr_card += len(page_apartments)
             apartments.extend(page_apartments)
-  
-    for apartment in apartments:
-        db_apartment = models.Apartment(
-            type_of_deal=apartment.sale_type.name,
-            type_of_building=apartment.house_type.name,
-            url=apartment.url,
-            cost=apartment.price,
-            rooms_count=apartment.rooms,
-            address=apartment.address,
-            floor=apartment.floor,
-            square=apartment.square,
-            add_date= datetime.now(),
-            longitude=apartment.longitude,
-            latitude=apartment.latitude
-            )
-        session.add(db_apartment)
-     
-    session.commit()    
- 
-
+            if len(apartments) > 20:
+                for apartment in apartments:
+                    db_apartment = models.Apartment(
+                        type_of_deal=apartment.sale_type.name,
+                        type_of_building=apartment.house_type.name,
+                        url=apartment.url,
+                        cost=apartment.price,
+                        rooms_count=apartment.rooms,
+                        address=apartment.address,
+                        floor=apartment.floor,
+                        square=apartment.square,
+                        add_date= datetime.now(),
+                        longitude=apartment.longitude,
+                        latitude=apartment.latitude
+                        )
+                    session.add(db_apartment)
+                session.commit()   
+                apartments: list[models.Apartment] = []
     session.close()
 

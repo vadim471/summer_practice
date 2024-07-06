@@ -15,5 +15,28 @@
             <a href="{{ url_for('routes.logout') }}">Logout</a>
         </div>
     </header>
+    <h2>Viewed Apartments</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Address</th>
+                <th>Price</th>
+                <th>Area</th>
+                <th>Rooms</th>
+                <th>Viewed At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for viewed_apartment in viewed_apartments %}
+                <tr>
+                    <td>{{ viewed_apartment.apartment.address }}</td>
+                    <td>{{ viewed_apartment.apartment.cost }}</td>
+                    <td>{{ viewed_apartment.apartment.square }}</td>
+                    <td>{{ viewed_apartment.apartment.rooms_count }}</td>
+                    <td>{{ viewed_apartment.viewed_at }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
