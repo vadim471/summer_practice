@@ -26,7 +26,9 @@ class YandexParser:
 
         for i, card in enumerate(cards): 
             if sum_card > len(apartments):
-                apartments.append(self.parse_card(card, url_type.house_type))
+                flat = self.parse_card(card, url_type.house_type)
+                if flat != None:
+                    apartments.append(flat)
             else:
                 break
             
@@ -49,6 +51,8 @@ class YandexParser:
             sale_type = SaleType.RENT
         address = offer.find( "div", {"class" : "AddressWithGeoLinks__addressContainer--4jzfZ"}).get_text()
         coordinates = self.get_coordinate(address)
+        if coordinates == None:
+            return None
         longitude, latitude = coordinates
         return Apartment(
             address, cost, square, rooms_count, floor, sale_type, house_type, link, longitude, latitude

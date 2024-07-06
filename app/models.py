@@ -1,3 +1,4 @@
+from flask_login import UserMixin
 from sqlalchemy import Column, Integer, String, Float, DateTime, Enum
 from datetime import datetime
 import enum
@@ -15,13 +16,13 @@ class UserRole(enum.Enum):
     user = "user"
     admin = "admin"
     
-class User(Base):
+class User(UserMixin, Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(150), unique=True, nullable=False) 
+    name = Column(String(150), unique=True, nullable=False) 
     password = Column(String(50), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user)
-    tokents_count = Column(Integer, default=10)
+    tokens_count = Column(Integer, default=10)
 
 class Apartment(Base):
     __tablename__ = "flat"
