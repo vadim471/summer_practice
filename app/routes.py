@@ -7,7 +7,9 @@ from app.MapService import MapService
 routes = Blueprint('routes', __name__)
 
 @routes.route('/')
+@login_required
 def home():
+    
     query = db.session.query(models.Apartment)
 
     deal_type = request.args.get('deal_type')
@@ -49,13 +51,23 @@ def home():
     if address:
         query = query.filter(models.Apartment.address.ilike(f"%{address}%"))
 
+    if current_user.is_authenticated:
+        if current_user.tokens_count > 0:
+            current_user.tokens_count -= 1
+            db.session.commit()
+        else:
+            return redirect(url_for('no_tokens'))
 
     apartments = query.all()
     header, body, script = MapService.get_map(apartments)
     return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
     
 
-
+@routes.route('/no_tokens')
+@login_required
+def no_tokens():
+    return render_template('no_tokens.html')    
+    
 @routes.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
