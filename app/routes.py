@@ -22,8 +22,7 @@ def home():
     max_area = request.args.get('max_area')
     rooms_count = request.args.get('rooms_count')
     address = request.args.get('address')
-    longitude = request.args.get('longitude')
-    latitude = request.args.get('latitude')
+
 
     if deal_type:
         query = query.filter(Apartment.type_of_deal == deal_type)
@@ -49,10 +48,7 @@ def home():
         query = query.filter(Apartment.rooms_count == rooms_count)
     if address:
         query = query.filter(Apartment.address.ilike(f"%{address}%"))
-    if latitude:
-        query = query.filter(Apartment.latitude == latitude)
-    if longitude:
-        query = query.filter(Apartment.longitude == longitude)
+
 
     apartments = query.all()
     header, body, script = MapService.get_map(apartments)
@@ -108,3 +104,23 @@ def get_radius():
     new_apartments = MapService.get_apartments_in_radius(apartments, latitude, longitude)
     header, body, script = MapService.get_map(apartments)
     return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
+
+@routes.route('/user_dashboard')
+@login_required
+def user_dashboard():
+    return render_template('user_dashboard.html', user=current_user)
+    
+@routes.route('/admin_dashboard')
+@login_required
+def admin_dashboard():
+    if current_user.role != "admin":
+        return redirect(url_for('routes.home'))
+    return render_template('admin_dashboard.html', admin=current_user)
+
+@routes.route('/dashboard')
+@login_required
+def dashboard():
+    if current_user.role == "admin":
+        return redirect(url_for('routes.admin_dashboard'))
+    else:
+        return redirect(url_for('routes.user_dashboard'))

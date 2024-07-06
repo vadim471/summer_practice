@@ -64,16 +64,16 @@ class MapService:
     def get_apartments_in_radius(apartments, lat: float, long: float, radius_km=1):
         new_data = []
         for apartment in apartments:
-            if MapService.get_distance(lat, apartment.latitude, long, apartments.longitude) <= radius_km:
+            if MapService.get_distance(lat, float(apartment.latitude), long, float(apartment.longitude)) <= radius_km:
                 new_data.append(apartment)
         return new_data
 
     @staticmethod
     def get_distance(lat1, lat2, long1, long2):
-        long1 = math.radians(long1)
-        long2 = math.radians(long2)
-        lat1 = math.radians(lat1)
-        lat2 = math.radians(lat2)
+        long1 = math.radians(float(long1))
+        long2 = math.radians(float(long2) )
+        lat1 = math.radians(float(lat1))
+        lat2 = math.radians(float(lat2))
 
         D_Lo = long2 - long1
         D_La = lat2 - lat1
