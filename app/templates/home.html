@@ -9,13 +9,17 @@
     {{ header|safe }}
 </head>
 <body>
-    <header>
+    <header class ="header">
         <h1>Available Apartments</h1>
-        {% if current_user.is_authenticated %}
-            <p>Hello, {{ current_user.name }}! <a href="{{ url_for('routes.logout') }}">Logout</a></p>
-        {% else %}
-            <p><a href="{{ url_for('routes.login') }}">Login</a> | <a href="{{ url_for('routes.register') }}">Register</a></p>
-        {% endif %}
+        <div>
+            {% if current_user.is_authenticated %}
+                <p>Hello, {{ current_user.name }}! <a href="{{ url_for('routes.logout') }}">Logout</a></p> <a class="area", href="{{ url_for('routes.dashboard') }}", > 
+                    <img src="../static/building.png", width="30px", height="30px"></a>
+            {% else %}
+                <p><a href="{{ url_for('routes.login') }}">Login</a> | <a href="{{ url_for('routes.register') }}">Register</a></p>
+            {% endif %}
+        </div>
+        
     </header>
     <script>
         window.addEventListener('message', function(e) {
@@ -35,7 +39,7 @@
     </script>
     <div class="container">
         <aside class="filters">
-            <form method="GET" action="{{ url_for('routes.home') }}">
+            <form id="filter-form" method="GET" action="{{ url_for('routes.home') }}">
                 <div class="filter-item">
                     <label for="deal_type">Тип сделки:</label>
                     <select name="deal_type" id="deal_type" onchange="updateCostSlider()">
@@ -94,6 +98,7 @@
 
                 <div class="button-wrap">
                     <button type="submit">Фильтровать</button>
+                    <button type="reset" id="reset-button">Сбросить</button>
                 </div>
             </form>
         </aside>
@@ -114,12 +119,23 @@
                     </li>
                 {% endfor %}
             </ul>
-           -->
+            -->
         </main>
     </div>
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.js"></script>
+    <script>
+        document.getElementById('reset-button').addEventListener('click', function(event) {
+            event.preventDefault();  
+            let form = document.getElementById('filter-form');
+            form.reset(); 
+            form.querySelectorAll('input[type=hidden]').forEach(function(input) {
+                input.value = '';
+        });
+        form.submit();  
+    });
+    </script>
     <script>
         function createSlider(sliderElement, minInput, maxInput, minValue, maxValue, step, displayElement) {
             noUiSlider.create(sliderElement, {

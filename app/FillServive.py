@@ -6,15 +6,19 @@ import bs4
 import requests
 from sqlalchemy import DateTime, Float, MetaData, Table, Column, Integer, String, Enum as Sqlenum
 
-from database import SessionLocal, engine
-from models import Base, Apartment
-from sqlalchemy.orm import Session
+from . import models, schemas, database
 
-from URLType import FeedType, URLType
-from CianParser import CianParser
-from YandexParser import YandexParser
-from Apartment import HouseType, SaleType
-from HTMLFetch import HTMLFetcher
+from .database import SessionLocal, engine
+
+
+from parsing.URLType import FeedType, URLType
+from parsing.CianParser import CianParser
+from parsing.YandexParser import YandexParser
+from parsing.Apartment import HouseType, SaleType
+from parsing.HTMLFetch import HTMLFetcher
+
+
+
 
     
     
@@ -122,27 +126,27 @@ def count_apartments_yandex(feed_pages: list[URLType], needed_count: int) -> lis
             
         return feed_pages
 
-def main():
+def fill_db():
     
     feed_pages: list[URLType] = [
         URLType(
             HouseType.NEW,
             "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=1&offer_type=flat&p=1&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
-            0,
+            250,
             SaleType.SALE,
             FeedType.NEW_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
             "https://chelyabinsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_seller_type%5B0%5D=2&offer_seller_type%5B1%5D=3&offer_type=flat&p=1&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1",
-            0,
+            500,
             SaleType.SALE,
             FeedType.SECONDARY_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
             "https://chelyabinsk.cian.ru/cat.php?deal_type=rent&engine_version=2&offer_type=flat&p=1&region=5048&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room9=1&type=4",
-            0,
+            290,
             SaleType.RENT,
             FeedType.SECONDARY_RENT,
         ),
@@ -151,32 +155,11 @@ def main():
     session = SessionLocal()
     parser = CianParser()
     fetcher = HTMLFetcher()
-    apartments: list[Apartment] = []
-    
-    meta=MetaData()
-    t=Table(
-        "flat",
-        meta,
-        Column('id', Integer, primary_key=True, index=True),
-        Column('type_of_deal', Sqlenum(SaleType), nullable=False),
-        Column('type_of_building', Sqlenum(HouseType), nullable=False),
-        Column('url', String, nullable=False),
-        Column('cost', Integer, nullable=False),
-        Column('rooms_count', Integer, nullable=False),
-        Column('address', String, nullable=False),
-        Column('floor', Integer, nullable=False),
-        Column('square', Float, nullable=False),
-        Column('add_date', DateTime, default=datetime.utcnow),
-        Column('longitude', Float, nullable=False),
-        Column('latitude', Float, nullable=False)
-    )
-   
+    """
+    apartments: list[models.Apartment] = []
     
     
-    
-    meta.create_all(engine)
-   
-    feed_pages = count_apartments_cian(feed_pages, 20)
+    #feed_pages = count_apartments_cian(feed_pages, 5000)
 
     for page in feed_pages:
         curr_card = 0
@@ -191,43 +174,43 @@ def main():
             apartments.extend(page_apartments)
     
     for apartment in apartments:
-        db_apartment = Apartment(
-            type_of_deal=apartment.sale_type,
-            type_of_building=apartment.house_type,
+        db_apartment = models.Apartment(
+            type_of_deal=apartment.sale_type.name,
+            type_of_building=apartment.house_type.name,
             url=apartment.url,
             cost=apartment.price,
             rooms_count=apartment.rooms,
             address=apartment.address,
             floor=apartment.floor,
             square=apartment.square,
-            add_date=datetime.now(),
+            add_date= datetime.now(),
             longitude=apartment.longitude,
             latitude=apartment.latitude
-        )
+            )
         session.add(db_apartment)
     session.commit()
- 
-    apartments: list[Apartment] = []
+    """
+    apartments: list[models.Apartment] = []
     parser = YandexParser()
     feed_pages: list[URLType] = [
         URLType(
             HouseType.NEW,
-            "https://realty.ya.ru/chelyabinsk/kupit/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&newFlat=YES?page=0",
-            10,
+            "https://realty.ya.ru/chelyabinsk/kupit/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&newFlat=YES&page=0",
+            400,
             SaleType.SALE,
             FeedType.NEW_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
-            "https://realty.ya.ru/chelyabinsk/kupit/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&newFlat=NO?page=0",
-            10,
+            "https://realty.ya.ru/chelyabinsk/kupit/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&newFlat=NO&page=0",
+            400,
             SaleType.SALE,
             FeedType.SECONDARY_SALE,
         ),
         URLType(
             HouseType.SECONDARY,
-            "https://realty.ya.ru/chelyabinsk/snyat/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4?page=0",
-            10,
+            "https://realty.ya.ru/chelyabinsk/snyat/kvartira/?roomsTotal=STUDIO&roomsTotal=1&roomsTotal=2&roomsTotal=3&roomsTotal=PLUS_4&page=0",
+            150,
             SaleType.RENT,
             FeedType.SECONDARY_RENT,
         ),
@@ -247,24 +230,23 @@ def main():
             apartments.extend(page_apartments)
   
     for apartment in apartments:
-        db_apartment = Apartment(
-            type_of_deal=apartment.sale_type,
-            type_of_building=apartment.house_type,
+        db_apartment = models.Apartment(
+            type_of_deal=apartment.sale_type.name,
+            type_of_building=apartment.house_type.name,
             url=apartment.url,
             cost=apartment.price,
             rooms_count=apartment.rooms,
             address=apartment.address,
             floor=apartment.floor,
             square=apartment.square,
-            add_date=datetime.now(),
+            add_date= datetime.now(),
             longitude=apartment.longitude,
             latitude=apartment.latitude
-        )
+            )
         session.add(db_apartment)
+     
     session.commit()    
  
 
     session.close()
 
-if __name__ == "__main__":
-    main()

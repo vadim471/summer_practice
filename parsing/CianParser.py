@@ -41,9 +41,16 @@ class CianParser:
         
 
     def parse_card(self, card_tag: Tag, house_type: HouseType) -> Apartment:
+        
         offer_title = card_tag.find("span", {"data-mark": "OfferTitle"})                        
         offer_subtitle = card_tag.find("span", {"data-mark": "OfferSubtitle"})
 
+        address = ", ".join(
+            [a.get_text() for a in card_tag.find_all("a", {"data-name": "GeoLabel"})]
+        )
+        is_digit_present = any(character.isdigit() for character in address)
+        if is_digit_present == False:
+            return None
         if offer_title is None:
             raise Exception("Can't parse title")
 
@@ -51,7 +58,8 @@ class CianParser:
         if res is None and type(offer_subtitle) is Tag:
             res = self.parse_title(offer_subtitle)
         if res is None:
-            raise Exception("Can't parse title")
+            return None
+            
 
         rooms, area, floor = res
         main_price_raw = card_tag.find("span", {"data-mark": "MainPrice"})
@@ -70,9 +78,7 @@ class CianParser:
         #     raise Exception("Can't parse price")
         # price_info = price_info_raw.get_text()
 
-        address = ", ".join(
-            [a.get_text() for a in card_tag.find_all("a", {"data-name": "GeoLabel"})]
-        )
+        
         url_tag = card_tag.find("a", href = True)
         url = url_tag['href']
         coordinates = self.get_coordinate(address)
@@ -90,8 +96,10 @@ class CianParser:
         for i, card in enumerate(cards): 
             if card.find("button"):
                 continue
-            if sum_card > len(apartments):
-                apartments.append(self.parse_card(card, url_type.house_type))
+            if sum_card > len(apartments) and card != None:
+                flat = self.parse_card(card, url_type.house_type)
+                if flat != None:                       
+                    apartments.append(self.parse_card(card, url_type.house_type))
             else:
                 break
         return apartments

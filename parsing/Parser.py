@@ -12,3 +12,8 @@ class Parser(ABC):
     @abstractmethod
     def parse_feed_page(self, url: str, type: HouseType, sale_type: SaleType) -> list[str]:
         pass
+    
+    @abstractmethod
+    def parse_url_flat(self, url:str) -> int:
+        pass
+    

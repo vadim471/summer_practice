@@ -1,15 +1,23 @@
-from bs4 import BeautifulSoup, Tag
 import re
-from selenium.webdriver.common.by import By
-
-
-
-from parsing import URLType
-from parsing.Apartment import Apartment, HouseType, SaleType
-from parsing.HTMLFetch import HTMLFetcher
+from .Apartment import Apartment, HouseType, SaleType
+from bs4 import BeautifulSoup
+from bs4.element import Tag
+from .URLType import URLType
+from .HTMLFetch import HTMLFetcher
+from geopy.geocoders import Nominatim
 
 
 class YandexParser:
+    def get_coordinate(self, address : str) -> tuple[float, float]:
+        geolocator = Nominatim(user_agent="Tester")
+        parts = address.replace('р-н', 'район').split(',')
+        
+        for i in range(len(parts), 0, -1):
+            current_address = ', '.join(parts[:i]).strip()
+            location = geolocator.geocode(current_address)
+            if location:
+                return (location.latitude, location.longitude)
+    
     def parse_feed_page(self, html_content: str, url_type: URLType, sum_card: int) -> list[Apartment]:
         soup = BeautifulSoup(html_content, "html.parser")
         cards = soup.find_all("div", {"class": "OffersSerpItem__main"})
@@ -18,7 +26,9 @@ class YandexParser:
 
         for i, card in enumerate(cards): 
             if sum_card > len(apartments):
-                apartments.append(self.parse_card(card, url_type.house_type))
+                flat = self.parse_card(card, url_type.house_type)
+                if flat != None:
+                    apartments.append(flat)
             else:
                 break
             
@@ -40,8 +50,12 @@ class YandexParser:
         if 'месяц' in cost_text:
             sale_type = SaleType.RENT
         address = offer.find( "div", {"class" : "AddressWithGeoLinks__addressContainer--4jzfZ"}).get_text()
+        coordinates = self.get_coordinate(address)
+        if coordinates == None:
+            return None
+        longitude, latitude = coordinates
         return Apartment(
-            address, cost, square, rooms_count, floor, sale_type, house_type, link, 
+            address, cost, square, rooms_count, floor, sale_type, house_type, link, longitude, latitude
         )
 
     def get_rooms_count(self, title) -> int:

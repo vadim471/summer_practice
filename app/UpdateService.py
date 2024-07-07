@@ -1,20 +1,19 @@
 from datetime import datetime, timedelta
 import time
-
-from app.models import Apartment
+from . import models, schemas, database
 from .database import SessionLocal
 from parsing.HTMLFetch import HTMLFetcher
 from parsing.YandexParser import YandexParser
 from parsing.CianParser import CianParser
 
 
-class ApartmentUpdateService:
+class UpdateService:
     
     def check_and_update_announcements(self):
-        session = SessionLocal()    
+        session = SessionLocal()     
         fetcher = HTMLFetcher()
         three_days_ago = datetime.utcnow() - timedelta(days=3)
-        old_announcements = session.query(Apartment).filter(Apartment.add_date < three_days_ago).limit(5).all()
+        old_announcements = session.query(models.Apartment).filter(models.Apartment.add_date < three_days_ago).limit(5).all()
     
         for announcement in old_announcements:
             url = announcement.url
