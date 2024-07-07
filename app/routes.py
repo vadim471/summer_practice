@@ -13,6 +13,7 @@ def home():
     query = db.session.query(models.Apartment)
 
     deal_type = request.args.get('deal_type')
+    clusters_num = request.args.get('cluster_num')
     min_cost = request.args.get('min_cost')
     max_cost = request.args.get('max_cost')
     min_price_per_sqm = request.args.get('min_price_per_sqm')
@@ -23,7 +24,9 @@ def home():
     min_area = request.args.get('min_area')
     max_area = request.args.get('max_area')
     rooms_count = request.args.get('rooms_count')
-    address = request.args.get('address')
+    location = request.args.get('location')
+    latitude = request.args.get('latitude')
+    longitude = request.args.get('longitude')
 
 
     if deal_type:
@@ -48,8 +51,6 @@ def home():
         query = query.filter(models.Apartment.square <= max_area)
     if rooms_count:
         query = query.filter(models.Apartment.rooms_count == rooms_count)
-    if address:
-        query = query.filter(models.Apartment.address.ilike(f"%{address}%"))
 
     if current_user.is_authenticated:
         if current_user.tokens_count > 0:
@@ -59,14 +60,19 @@ def home():
             return redirect(url_for('no_tokens'))
 
     apartments = query.all()
-    header, body, script = MapService.get_map(apartments)
+    if location and latitude and longitude:
+        apartments = MapService.get_apartments_in_radius(apartments, float(latitude), float(longitude))
+
+    if not clusters_num:
+        clusters_num = 0
+    header, body, script = MapService.get_map(apartments, int(clusters_num))
     return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
 
 
 @routes.route('/no_tokens')
 @login_required
 def no_tokens():
-    return render_template('no_tokens.html')    
+    return render_template('no_tokens.html')
     
 @routes.route('/register', methods=['GET', 'POST'])
 def register():
