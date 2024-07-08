@@ -16,6 +16,49 @@
         </div>
         
     </header>
+    <div class="charts">
+        <h2>График новых пользователей</h2>
+        <label for="period_users">Выберите период:</label>
+        <select id="period_users">
+            <option value="week">Неделя</option>
+            <option value="month">Месяц</option>
+        </select>
 
+        <div id="plotly-graph-users"></div>
+
+    </div>
 </body>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        const periodSelectUsers = document.getElementById("period_users");
+        const plotlyGraphUsers = document.getElementById("plotly-graph-users");
+
+        function get_chart_data_users(period) {
+            return fetch(`/new_users/${period}`)
+                .then(response => response.json())
+                .then(chart_json => {
+                    return chart_json;
+                });
+        }
+
+        function create_plotly_graph(chart_json, chartElement) {
+            Plotly.purge(chartElement);
+            Plotly.plot(chartElement, JSON.parse(chart_json), {responsive: true});
+        }
+
+        periodSelectUsers.addEventListener("change", function() {
+            const selectedPeriod = this.value;
+            get_chart_data_users(selectedPeriod)
+                .then(chart_json => {
+                    create_plotly_graph(chart_json, plotlyGraphUsers);
+                });
+        });
+
+        // Инициализация графика при загрузке страницы
+        get_chart_data_users("week")
+            .then(chart_json => {
+                create_plotly_graph(chart_json, plotlyGraphUsers);
+            });
+
+    </script>
 </html>

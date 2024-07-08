@@ -1,8 +1,13 @@
-from flask import render_template, url_for, redirect, request, Blueprint
+from datetime import datetime, timedelta
+
+from flask import render_template, url_for, redirect, request, Blueprint, jsonify
 from . import models
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db
 from app.MapService import MapService
+
+
+from .StatisticsService import StatisticsService
 
 routes = Blueprint('routes', __name__)
 
@@ -57,7 +62,7 @@ def home():
             current_user.tokens_count -= 1
             db.session.commit()
         else:
-            return redirect(url_for('no_tokens'))
+            return redirect(url_for('routes.no_tokens'))
 
     apartments = query.all()
     if location and latitude and longitude:
@@ -113,21 +118,27 @@ def like():
     # добавление в избранное
 
 
-@routes.route('/get_apartments_in_radius', methods=['POST'])
-def get_radius():
-    data = request.get_json()
-    latitude = data.get('latitude')
-    longitude = data.get('longitude')
-    apartments = db.session.query(models.Apartment).all()
-    new_apartments = MapService.get_apartments_in_radius(apartments, latitude, longitude)
-    header, body, script = MapService.get_map(apartments)
-    return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
+@routes.route('/new_users/<period>')
+def get_new_users(period):
+    query = db.session.query(models.User)
+    if period == "week":
+        last_week = datetime.now() - timedelta(weeks=1)
+        users = query.filter(models.User.registration_date >= last_week).all()
+    else:
+        last_month = datetime.now() - timedelta(days=30)
+        users = query.filter(models.User.registration_date >= last_month).all()
+
+    chart_json = StatisticsService.get_new_users_chart(users, period)
+
+    return jsonify(chart_json)
+
 
 @routes.route('/user_dashboard')
 @login_required
 def user_dashboard():
     return render_template('user_dashboard.html', user=current_user)
-    
+
+
 @routes.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
