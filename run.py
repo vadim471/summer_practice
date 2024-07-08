@@ -6,6 +6,6 @@ updateService = UpdateService
 
 #updateService.UpdateService.check_and_update_announcements()
 if __name__ == '__main__': 
-    app.run(debug = True)
+    app.run(host='192.168.88.10', debug = True)
     #service.run()
-    #host='192.168.88.10'
+    #host=''

@@ -119,7 +119,7 @@ class MapService:
         <p style="font-family:verdana;"><button id="like_btn" onclick="like_apartment()" apartment-id="{apartment.id}">В избранное ❤</button></p>
         <script>{MapService.add_like_js()}
             function view_apartment(apartment_id) {{
-                fetch('http://127.0.0.1:5000/add_to_viewed', {{
+                fetch('http://192.168.88.10:5000/add_to_viewed', {{
                     method: 'POST',
                     credentials: 'include',
                     headers: {{

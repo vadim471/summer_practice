@@ -10,6 +10,19 @@ from .StatisticsService import StatisticsService
 from flask import render_template, url_for, redirect, request, Blueprint, jsonify
 routes = Blueprint('routes', __name__)
 
+@routes.route('/new_users/<period>')
+def get_new_users(period):
+    query = db.session.query(models.User)
+    if period == "week":
+        last_week = datetime.now() - timedelta(weeks=1)
+        users = query.filter(models.User.registration_date >= last_week).all()
+    else:
+        last_month = datetime.now() - timedelta(days=30)
+        users = query.filter(models.User.registration_date >= last_month).all()
+
+    chart_json = StatisticsService.get_new_users_chart(users, period)
+
+    return jsonify(chart_json)
 @routes.route('/')
 @login_required
 def home():
@@ -119,15 +132,6 @@ def like():
     # добавление в избранное
 
 
-@routes.route('/get_apartments_in_radius', methods=['POST'])
-def get_radius():
-    data = request.get_json()
-    latitude = data.get('latitude')
-    longitude = data.get('longitude')
-    apartments = db.session.query(models.Apartment).all()
-    new_apartments = MapService.get_apartments_in_radius(apartments, latitude, longitude)
-    header, body, script = MapService.get_map(apartments)
-    return render_template('home.html', apartments=apartments, header=header, body_html=body, script=script)
 
 @routes.route('/user_dashboard')
 @login_required
