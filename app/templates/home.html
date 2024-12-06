@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Apartments</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.css">
+    {{ header|safe }}
+</head>
+<body>
+    <header class ="header">
+        <h1>Available Apartments</h1>
+        <div>
+            {% if current_user.is_authenticated %}
+                <p>Hello, {{ current_user.name }}! <a href="{{ url_for('routes.logout') }}">Logout</a></p> <a class="area", href="{{ url_for('routes.dashboard') }}", > 
+                    <img src="../static/building.png", width="30px", height="30px"></a>
+            {% else %}
+                <p><a href="{{ url_for('routes.login') }}">Login</a> | <a href="{{ url_for('routes.register') }}">Register</a></p>
+            {% endif %}
+        </div>
+        
+    </header>
+    <script>
+        window.addEventListener('message', function(e) {
+            fetch('/like', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ apartmentId: e.data.data })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при отправке запроса');
+                }
+            })
+    });
+    </script>
+    <div class="container">
+        <aside class="filters">
+            <form id="filter-form" method="GET" action="{{ url_for('routes.home') }}">
+                <div class="filter-item">
+                    <label for="deal_type">Тип сделки:</label>
+                    <select name="deal_type" id="deal_type" onchange="updateCostSlider()">
+                        <option value="">Любой</option>
+                        <option value="RENT">Аренда</option>
+                        <option value="SALE">Продажа</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Количество кластеров: <span id="cluster-value"></span></label>
+                    <div id="cluster-slider"></div>
+                    <input type="hidden" name="cluster_num" id="cluster_num">
+                </div>
+
+                <div class="filter-item">
+                    <label>Стоимость: <span id="cost-value"></span></label>
+                    <div id="cost-slider"></div>
+                    <input type="hidden" name="min_cost" id="min_cost">
+                    <input type="hidden" name="max_cost" id="max_cost">
+                </div>
+
+                <div class="filter-item">
+                    <label>Цена за кв.м: <span id="price-per-sqm-value"></span></label>
+                    <div id="price-per-sqm-slider"></div>
+                    <input type="hidden" name="min_price_per_sqm" id="min_price_per_sqm">
+                    <input type="hidden" name="max_price_per_sqm" id="max_price_per_sqm">
+                </div>
+
+                <div class="filter-item">
+                    <label>Этаж: <span id="floor-value"></span></label>
+                    <div id="floor-slider"></div>
+                    <input type="hidden" name="min_floor" id="min_floor">
+                    <input type="hidden" name="max_floor" id="max_floor">
+                </div>
+
+                <div class="filter-item">
+                    <label for="building_type" id="building_type_label">Тип здания:</label>
+                    <select name="building_type" id="building_type">
+                        <option value="">Любой</option>
+                        <option value="NEW">Новое</option>
+                        <option value="SECONDARY">Вторичное</option>
+                    </select>
+                </div>
+                
+                
+                <div class="filter-item">
+                    <label>Площадь: <span id="area-value"></span></label>
+                    <div id="area-slider"></div>
+                    <input type="hidden" name="min_area" id="min_area">
+                    <input type="hidden" name="max_area" id="max_area">
+                </div>
+
+                <div class="filter-item">
+                    <label for="rooms_count">Количество комнат:</label>
+                    <input type="number" name="rooms_count" id="rooms_count" placeholder="1">
+                </div>
+                
+                <div>
+                    <input type="checkbox" id="location" name="location"/>
+                    <label for="location">Найти объявления в радиусе 1 км</label>
+                </div>
+
+                <div class="filter-item">
+                    <input type="hidden" name="latitude" id="latitude">
+                </div>
+
+                <div class="filter-item">
+                    <input type="hidden" name="longitude" id="longitude">
+                </div>
+
+                <div class="button-wrap">
+                    <button type="submit">Фильтровать</button>
+                    <button type="reset" id="reset-button">Сбросить</button>
+                </div>
+            </form>
+        </aside>
+      
+        <main class="content">
+            
+            {{ body_html|safe }}
+            <!--
+            <ul>
+                {% for apartment in apartments %}
+                    <li>
+                        <h2>{{ apartment.street }} {{ apartment.house }}</h2>
+                        <p>{{ apartment.rooms_count }} rooms, {{ apartment.floor }} floor, {{ apartment.square }} m²</p>
+                        <p>Cost: {{ apartment.cost }}</p>
+                        <p>Type of deal: {{ apartment.type_of_deal }}</p>
+                        <p>Type of building: {{ apartment.type_of_building }}</p>
+                        <p><a href="{{ apartment.url }}" target="_blank">View Details</a></p>
+                    </li>
+                {% endfor %}
+            </ul>
+            -->
+        </main>
+    </div>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.js"></script>
+    <script>
+        document.getElementById('reset-button').addEventListener('click', function(event) {
+            event.preventDefault();  
+            let form = document.getElementById('filter-form');
+            form.reset(); 
+            form.querySelectorAll('input[type=hidden]').forEach(function(input) {
+                input.value = '';
+        });
+        form.submit();  
+    });
+    </script>
+    <script>
+        function createSlider(sliderElement, minInput, maxInput, minValue, maxValue, step, displayElement) {
+            noUiSlider.create(sliderElement, {
+                start: [minValue, maxValue],
+                connect: true,
+                range: {
+                    'min': minValue,
+                    'max': maxValue
+                },
+                step: step,
+                format: {
+                    to: function (value) {
+                        return Math.round(value);
+                    },
+                    from: function (value) {
+                        return Number(value);
+                    }
+                }
+            });
+
+            sliderElement.noUiSlider.on('update', function (values, handle) {
+                minInput.value = values[0];
+                maxInput.value = values[1];
+                displayElement.innerHTML = values[0] + ' - ' + values[1];
+            });
+        }
+        function updateCostSlider() {
+            const dealType = document.getElementById('deal_type').value;
+            let min = 0, max = 10000000, step = 1000;
+
+            if (dealType === 'RENT') {
+                max = 200000;
+                step = 100;
+            } else if (dealType === 'SALE') {
+                max = 10000000;
+                step = 1000;
+            }
+
+            const costSlider = document.getElementById('cost-slider');
+            costSlider.noUiSlider.updateOptions({
+                range: {
+                    'min': min,
+                    'max': max
+                },
+                step: step
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const queryParams = new URLSearchParams(window.location.search);
+            createSlider(document.getElementById('cost-slider'), 
+                         document.getElementById('min_cost'), 
+                         document.getElementById('max_cost'), 0, 10000000, 1000,
+                         document.getElementById('cost-value'));
+
+            createSlider(document.getElementById('price-per-sqm-slider'), 
+                         document.getElementById('min_price_per_sqm'), 
+                         document.getElementById('max_price_per_sqm'), 0, 100000, 100,
+                         document.getElementById('price-per-sqm-value'));
+
+            createSlider(document.getElementById('floor-slider'), 
+                         document.getElementById('min_floor'), 
+                         document.getElementById('max_floor'), 1, 20, 1,
+                         document.getElementById('floor-value'));
+
+            createSlider(document.getElementById('area-slider'), 
+                         document.getElementById('min_area'), 
+                         document.getElementById('max_area'), 0, 1000, 10,
+                         document.getElementById('area-value'));
+            updateCostSlider();
+            var cluster_slider = document.getElementById('cluster-slider');
+            noUiSlider.create(cluster_slider, {
+                start: [0],
+                connect: true,
+                range: {
+                    'min': [0],
+                    'max': [10]
+                },
+                step: 1,
+                format: {
+                    to: function (value) {
+                        return Math.round(value);
+                    },
+                    from: function (value) {
+                        return Number(value);
+                    }
+                }
+            });
+
+            cluster_slider.noUiSlider.on('update', function (values, handle) {
+                document.getElementById('cluster-value').innerHTML = values[0];
+                document.getElementById('cluster_num').value = values[0];
+            });
+
+            const clustersNum = parseInt(queryParams.get('cluster_num'), 10);
+            document.getElementById('cluster-slider').noUiSlider.set([clustersNum]);
+
+            const minCost = parseInt(queryParams.get('min_cost'), 10);
+            const maxCost = parseInt(queryParams.get('max_cost'), 10);
+            document.getElementById('cost-slider').noUiSlider.set([minCost, maxCost]);
+
+            const minCostPerSqm = parseInt(queryParams.get('min_price_per_sqm'), 10);
+            const maxCostPerSqm = parseInt(queryParams.get('max_price_per_sqm'), 10);
+            document.getElementById('price-per-sqm-slider').noUiSlider.set([minCostPerSqm, maxCostPerSqm]);
+
+            const minFloor = parseInt(queryParams.get('min_floor'), 10);
+            const maxFloor = parseInt(queryParams.get('max_floor'), 10);
+            document.getElementById('floor-slider').noUiSlider.set([minFloor, maxFloor]);
+
+            const minArea = parseInt(queryParams.get('min_area'), 10);
+            const maxArea = parseInt(queryParams.get('max_area'), 10);
+            document.getElementById('area-slider').noUiSlider.set([minArea, maxArea]);
+
+            const dealType = queryParams.get('deal_type');
+            const dealTypeSelect = document.getElementById('deal_type');
+            dealTypeSelect.value = dealType;
+
+            const buildingType = queryParams.get('building_type');
+            const buildingTypeSelect = document.getElementById('building_type');
+            buildingTypeSelect.value = buildingType;
+
+            const roomsCount = queryParams.get('rooms_count');
+            const roomsCountInput = document.getElementById('rooms_count');
+            roomsCountInput.value = roomsCount;
+        });
+        
+    </script>
+    <script>
+        {{ script|safe }}
+    </script>
+</body>
+</html>

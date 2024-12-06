@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Dashboard</h1>
+        <div>
+            <p>Welcome, User {{ user.name }}. Your tokens: {{ user.tokens_count }}</p>
+            <a class="area" href="{{ url_for('routes.home') }}"><img src="../static/card.png" width="30px"  height="30px">View Adds</a> |
+            <a href="{{ url_for('routes.logout') }}">Logout</a>
+        </div>
+    </header>
+    <h2>Viewed Apartments</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Address</th>
+                <th>Price</th>
+                <th>Area</th>
+                <th>Rooms</th>
+                <th>Viewed At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for viewed_apartment in viewed_apartments %}
+                <tr>
+                    <td>{{ viewed_apartment.apartment.address }}</td>
+                    <td>{{ viewed_apartment.apartment.cost }}</td>
+                    <td>{{ viewed_apartment.apartment.square }}</td>
+                    <td>{{ viewed_apartment.apartment.rooms_count }}</td>
+                    <td>{{ viewed_apartment.viewed_at }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

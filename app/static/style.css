@@ -1,0 +1,116 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    
+}
+
+header a {
+    color: #FFD700;
+    text-decoration: none;
+}
+
+main {
+    padding: 2rem;
+    height: 1000px;
+    width: 1000px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #f9f9f9;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+}
+
+li h2 {
+    margin-top: 0;
+}
+
+
+button {
+    padding: 20px, 40px;
+    background-color: #4d4d4d;
+    color: white;
+    border: none;
+    cursor: pointer;
+    
+}
+
+.button-wrap{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 10px;
+}
+.container{
+    display: flex;
+}
+aside.filters{
+    width: 25%;
+    padding: 20px;
+    background-color: #f1f1f1;
+    border-right: 1px, solid #ddd ;
+}
+main.apartments {
+    width: 75%;
+    padding: 20px;
+}
+.filter-item{
+    margin-bottom: 20px;
+}
+.filter-item label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.filter-item select,
+.filter-item input {
+    width: 100%;
+}
+
+#cost-slider, 
+#price-per-sqm-slider, 
+#floor-slider, 
+#area-slider {
+    margin-top: 10px;
+}
+
+
+main ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+main li {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+main li h2 {
+    margin: 0 0 10px 0;
+}
+
+main li p {
+    margin: 5px 0;
+}
+.area img{
+    margin-left: 75%;
+
+}
